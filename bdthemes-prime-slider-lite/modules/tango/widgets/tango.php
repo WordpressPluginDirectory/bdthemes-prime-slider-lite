@@ -164,7 +164,7 @@ class Tango extends Widget_Base {
 		$this->add_responsive_control(
 			'item_gap',
 			[
-				'label'   => __('Item Gap', 'ultimate-post-kit'),
+				'label'   => __('Item Gap', 'bdthemes-prime-slider'),
 				'type'    => Controls_Manager::SLIDER,
 				'default' => [
 					'size' => 20,
@@ -208,12 +208,13 @@ class Tango extends Widget_Base {
 				'type'  => Controls_Manager::SLIDER,
 				'range' => [
 					'px' => [
-						'min' => 50,
+						'min' => 10,
 						'max' => 200,
 					],
 				],
 				'selectors' => [
-					'{{WRAPPER}} .bdt-prime-slider-tango' => 'padding-bottom: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .bdt-prime-slider-tango' => 'margin-bottom: {{SIZE}}{{UNIT}};', 
+					'{{WRAPPER}} .bdt-prime-slider-tango .swiper-pagination' => 'transform: translateX(-50%) translateY({{SIZE}}{{UNIT}});',
 				],
 			]
 		);
@@ -293,11 +294,22 @@ class Tango extends Widget_Base {
             ]
 		);
 
+		$this->add_control(
+			'item_up_down',
+			[
+				'label'   => esc_html__('Item Up Down', 'bdthemes-prime-slider') .BDTPS_CORE_NC . BDTPS_CORE_PC,
+				'type'    => Controls_Manager::SWITCHER,
+				'prefix_class' => 'bdt-item-up-down-',
+				'render_type'  => 'template',
+				'classes'   => BDTPS_CORE_IS_PC
+			]
+		);
+
 		/**
 		* Thumbnail Size Controls
 		*/
 		$this->register_thumbnail_size_controls();
-		
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
@@ -529,13 +541,13 @@ class Tango extends Widget_Base {
 			Group_Control_Background::get_type(),
 			[
 				'name' => 'image_overlay',
-				'label' => esc_html__('Background', 'pixel-gallery'),
+				'label' => esc_html__('Background', 'bdthemes-prime-slider'),
 				'types' => ['classic', 'gradient'],
 				'exclude' => ['image'],
 				'selector' => '{{WRAPPER}} .bdt-prime-slider-tango .bdt-image-wrap::before',
 				'fields_options' => [
 					'background' => [
-						'label' => esc_html__('Overlay Color', 'pixel-gallery'),
+						'label' => esc_html__('Overlay Color', 'bdthemes-prime-slider'),
 						'default' => 'gradient',
 					],
 					'color' => [
@@ -831,7 +843,7 @@ class Tango extends Widget_Base {
 		$this->add_responsive_control(
 			'arrows_acx_position',
 			[
-				'label'   => __( 'Spacing', 'bdthemes-element-pack' ),
+				'label'   => __( 'Spacing', 'bdthemes-prime-slider' ),
 				'type'    => Controls_Manager::SLIDER,
 				'range' => [
 					'px' => [
