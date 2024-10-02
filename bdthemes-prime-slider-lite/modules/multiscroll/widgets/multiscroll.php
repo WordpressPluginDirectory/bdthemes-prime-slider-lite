@@ -1242,11 +1242,39 @@ class Multiscroll extends Widget_Base {
 
 		<?php
 	}
+	public function render_button($slide) {
+		$settings = $this->get_settings_for_display();
+
+		if ('' == $settings['show_button']) {
+			return;
+		}
+
+		if ($slide['slide_button']) {
+			$this->add_link_attributes('button_link', $slide['button_link'], true);
+		}
+		
+
+		$this->add_render_attribute('button-position', 'class', 'bdt-mltiscroll-slider-button bdt-btn-position-' . $settings['button_position']);
+
+		?>
+		<?php if ($slide['slide_button'] && ('yes' == $settings['show_button']) && (! empty($slide['button_link']['url']))) : ?>
+			<div <?php $this->print_render_attribute_string('button-position'); ?>>
+				<?php if ('' !== $slide['button_link']['url']) : ?>
+					<a <?php $this->print_render_attribute_string('button_link') ?>>
+					<?php endif; ?>
+					<?php echo esc_html($slide['slide_button']); ?>
+					<?php if ('' !== $slide['button_link']['url']) : ?>
+					</a>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
+		<?php
+	}
 
 	public function render_content_center() {
 		$settings = $this->get_settings_for_display();
 
-		$this->add_render_attribute('button-position', 'class', 'bdt-mltiscroll-slider-button bdt-btn-position-' . $settings['button_position']);
+		
 
 		?>
 		<div class="bdt-content-center">
@@ -1277,17 +1305,7 @@ class Multiscroll extends Widget_Base {
 							<?php endif; ?>
 						</div>
 						<?php if ($settings['button_position'] == 'left') : ?>
-							<?php if ($slide['slide_button'] && ('yes' == $settings['show_button'])) : ?>
-								<div <?php $this->print_render_attribute_string('button-position'); ?>>
-									<?php if ('' !== $slide['button_link']['url']) : ?>
-										<a href="<?php echo esc_url($slide['button_link']['url']); ?>">
-										<?php endif; ?>
-										<?php echo wp_kses_post($slide['slide_button']); ?>
-										<?php if ('' !== $slide['button_link']['url']) : ?>
-										</a>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
+							<?php $this->render_button($slide); ?>
 						<?php endif; ?>
 					</div>
 
@@ -1324,17 +1342,7 @@ class Multiscroll extends Widget_Base {
 						</div>
 
 						<?php if ($settings['button_position'] == 'right') : ?>
-							<?php if ($slide['slide_button'] && ('yes' == $settings['show_button'])) : ?>
-								<div <?php $this->print_render_attribute_string('button-position'); ?>>
-									<?php if ('' !== $slide['button_link']['url']) : ?>
-										<a href="<?php echo esc_url($slide['button_link']['url']); ?>">
-										<?php endif; ?>
-										<?php echo wp_kses_post($slide['slide_button']); ?>
-										<?php if ('' !== $slide['button_link']['url']) : ?>
-										</a>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
+							<?php $this->render_button($slide); ?>
 						<?php endif; ?>
 
 					</div>
@@ -1352,7 +1360,7 @@ class Multiscroll extends Widget_Base {
 	public function render_content_text_left() {
 		$settings = $this->get_settings_for_display();
 
-		$this->add_render_attribute('button-position', 'class', 'bdt-mltiscroll-slider-button bdt-btn-position-' . $settings['button_position']);
+		
 
 		?>
 		<div class="bdt-content-text-left">
@@ -1380,17 +1388,7 @@ class Multiscroll extends Widget_Base {
 							<?php $this->rendar_item_content($slide); ?>
 						</div>
 						<?php if ($settings['button_position'] == 'left') : ?>
-							<?php if ($slide['slide_button'] && ('yes' == $settings['show_button'])) : ?>
-								<div <?php $this->print_render_attribute_string('button-position'); ?>>
-									<?php if ('' !== $slide['button_link']['url']) : ?>
-										<a href="<?php echo esc_url($slide['button_link']['url']); ?>">
-										<?php endif; ?>
-										<?php echo wp_kses_post($slide['slide_button']); ?>
-										<?php if ('' !== $slide['button_link']['url']) : ?>
-										</a>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
+							<?php $this->render_button($slide); ?>
 						<?php endif; ?>
 					</div>
 
@@ -1423,17 +1421,7 @@ class Multiscroll extends Widget_Base {
 							<?php $this->rendar_item_image($slide); ?>
 						<?php endif; ?>
 						<?php if ($settings['button_position'] == 'right') : ?>
-							<?php if ($slide['slide_button'] && ('yes' == $settings['show_button'])) : ?>
-								<div <?php $this->print_render_attribute_string('button-position'); ?>>
-									<?php if ('' !== $slide['button_link']['url']) : ?>
-										<a href="<?php echo esc_url($slide['button_link']['url']); ?>">
-										<?php endif; ?>
-										<?php echo wp_kses_post($slide['slide_button']); ?>
-										<?php if ('' !== $slide['button_link']['url']) : ?>
-										</a>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
+							<?php $this->render_button($slide); ?>
 						<?php endif; ?>
 					</div>
 
@@ -1447,7 +1435,7 @@ class Multiscroll extends Widget_Base {
 	public function render_content_text_right() {
 		$settings = $this->get_settings_for_display();
 
-		$this->add_render_attribute('button-position', 'class', 'bdt-mltiscroll-slider-button bdt-btn-position-' . $settings['button_position']);
+		
 
 		?>
 		<div class="bdt-content-text-right">
@@ -1474,17 +1462,7 @@ class Multiscroll extends Widget_Base {
 							<?php $this->rendar_item_image($slide); ?>
 						<?php endif; ?>
 						<?php if ($settings['button_position'] == 'left') : ?>
-							<?php if ($slide['slide_button'] && ('yes' == $settings['show_button'])) : ?>
-								<div <?php $this->print_render_attribute_string('button-position'); ?>>
-									<?php if ('' !== $slide['button_link']['url']) : ?>
-										<a href="<?php echo esc_url($slide['button_link']['url']); ?>">
-										<?php endif; ?>
-										<?php echo wp_kses_post($slide['slide_button']); ?>
-										<?php if ('' !== $slide['button_link']['url']) : ?>
-										</a>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
+							<?php $this->render_button($slide); ?>
 						<?php endif; ?>
 					</div>
 
@@ -1516,17 +1494,7 @@ class Multiscroll extends Widget_Base {
 							<?php $this->rendar_item_content($slide); ?>
 						</div>
 						<?php if ($settings['button_position'] == 'right') : ?>
-							<?php if ($slide['slide_button'] && ('yes' == $settings['show_button'])) : ?>
-								<div <?php $this->print_render_attribute_string('button-position'); ?>>
-									<?php if ('' !== $slide['button_link']['url']) : ?>
-										<a href="<?php echo esc_url($slide['button_link']['url']); ?>">
-										<?php endif; ?>
-										<?php echo wp_kses_post($slide['slide_button']); ?>
-										<?php if ('' !== $slide['button_link']['url']) : ?>
-										</a>
-									<?php endif; ?>
-								</div>
-							<?php endif; ?>
+							<?php $this->render_button($slide); ?>
 						<?php endif; ?>
 					</div>
 
