@@ -4,25 +4,38 @@
  * Plugin Name: Prime Slider
  * Plugin URI: https://primeslider.pro/
  * Description: Prime Slider is a packed of elementor widget that gives you some awesome header and slider combination for your website.
- * Version: 3.15.21
+ * Version: 3.15.23
  * Author: BdThemes
  * Author URI: https://bdthemes.com/
  * Text Domain: bdthemes-prime-slider
  * Domain Path: /languages
  * License: GPL3
  * Elementor requires at least: 3.22
- * Elementor tested up to: 3.25.9
+ * Elementor tested up to: 3.25.10
  */
 
 // Some pre define value for easy use
 
 if ( ! defined( 'BDTPS_CORE_VER' ) ) {
-	define( 'BDTPS_CORE_VER', '3.15.21' );
+	define( 'BDTPS_CORE_VER', '3.15.23' );
 }
 if ( ! defined( 'BDTPS_CORE__FILE__' ) ) {
 	define( 'BDTPS_CORE__FILE__', __FILE__ );
 }
 
+
+/**
+ * Loads translations
+ *
+ * @return void
+ */
+
+if ( ! function_exists( 'prime_slider_load_textdomain' ) ) {
+	function prime_slider_load_textdomain() {
+		load_plugin_textdomain( 'bdthemes-prime-slider', false, basename( dirname( __FILE__ ) ) . '/languages' );
+	}
+	add_action( 'init', 'prime_slider_load_textdomain' );
+}
 
 if ( ! function_exists( '_is_pro_pro_installed' ) ) {
 
@@ -79,7 +92,6 @@ if ( ! function_exists( '_is_elementor_installed' ) ) {
  * Also loaded the language file from here
  */
 function prime_slider_load_plugin() {
-	load_plugin_textdomain( 'bdthemes-prime-slider', false, basename( dirname( __FILE__ ) ) . '/languages' );
 
 	if ( ! did_action( 'elementor/loaded' ) ) {
 		add_action( 'admin_notices', 'prime_slider_fail_load' );
