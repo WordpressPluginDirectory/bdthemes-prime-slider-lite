@@ -54,13 +54,13 @@ class Isolate extends Widget_Base {
         $reveal_effects = prime_slider_option('reveal-effects', 'prime_slider_other_settings', 'off');
         if ('on' === $reveal_effects) {
             if ( true === _is_ps_pro_activated() ) {
-                return ['gsap', 'split-text', 'anime', 'revealFx', 'ps-isolate'];
+                return ['gsap', 'split-text', 'anime', 'revealFx', 'ps-animation-helper'];
             } else {
                 return [];
             }
         } else {
             if ( true === _is_ps_pro_activated() ) {
-                return ['gsap', 'split-text', 'ps-isolate'];
+                return ['gsap', 'split-text', 'ps-animation-helper'];
             } else {
                 return [];
             }
@@ -375,8 +375,13 @@ class Isolate extends Widget_Base {
                         'icon' => 'eicon-text-align-right',
                     ],
                 ],
+                'selectors_dictionary' => [
+                    'left' => 'align-items: flex-start; text-align: left;',
+                    'right' => 'align-items: flex-end; text-align: right;',
+                    'center' => 'align-items: center; text-align: center;',
+                ],
                 'selectors' => [
-                    '{{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-content' => 'text-align: {{VALUE}};',
+                    '{{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-desc' => '{{VALUE}};',
                 ],
             ]
         );
@@ -1401,6 +1406,31 @@ class Isolate extends Widget_Base {
                 ],
             ]
         );
+        $this->add_responsive_control(
+            'play_button_position',
+            [
+                'label' => esc_html__('Position', 'bdthemes-prime-slider') . BDTPS_CORE_NC,
+                'type' => Controls_Manager::SELECT,
+                'default' => 'center',
+                'options' => [
+                    'top-left' => esc_html__('Top Left', 'bdthemes-prime-slider'),
+                    'top-right' => esc_html__('Top Right', 'bdthemes-prime-slider'),
+                    'center' => esc_html__('Center', 'bdthemes-prime-slider'),
+                    'bottom-left' => esc_html__('Bottom Left', 'bdthemes-prime-slider'),
+                    'bottom-right' => esc_html__('Bottom Right', 'bdthemes-prime-slider'),
+                ],
+                'selectors_dictionary' => [
+                    'center' => 'left: 50%; top: 50%; transform: translate(-50%, -50%); right: auto; bottom: auto;',
+                    'top-left' => 'left: 0; top: 0; right: auto; bottom: auto; transform: none;',
+                    'top-right' => 'right: 0; top: 0; left: auto; bottom: auto; transform: none;',
+                    'bottom-left' => 'left: 0; bottom: 0; right: auto; top: auto; transform: none;',
+                    'bottom-right' => 'right: 0; bottom: 0; left: auto; top: auto; transform: none;',
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bdt-prime-slider .bdt-slide-play-button' => '{{VALUE}}',
+                ],
+            ]
+        );
 
         $this->add_control(
             'fancy_animation',
@@ -1412,9 +1442,6 @@ class Isolate extends Widget_Base {
                     'shadow-pulse' => esc_html__('Shadow Pulse', 'bdthemes-prime-slider'),
                     'multi-shadow' => esc_html__('Multi Shadow', 'bdthemes-prime-slider'),
                     'line-bounce' => esc_html__('Line Bounce', 'bdthemes-prime-slider'),
-                ],
-                'condition' => [
-                    '_skin' => '',
                 ],
             ]
         );
@@ -1429,7 +1456,6 @@ class Isolate extends Widget_Base {
                 ],
                 'condition' => [
                     'fancy_animation' => 'line-bounce',
-                    '_skin' => '',
                 ],
             ]
         );
@@ -1444,7 +1470,6 @@ class Isolate extends Widget_Base {
                 ],
                 'condition' => [
                     'fancy_animation!' => 'line-bounce',
-                    '_skin' => '',
                 ],
             ]
         );
@@ -1499,11 +1524,42 @@ class Isolate extends Widget_Base {
                 ],
             ]
         );
+        $this->add_responsive_control(
+            'slide_play_button_padding',
+            [
+                'label' => esc_html__('Padding', 'bdthemes-prime-slider'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'selectors' => [
+                    '{{WRAPPER}} .bdt-prime-slider .bdt-slide-play-button a' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+        $this->add_responsive_control(
+            'slide_play_button_margin',
+            [
+                'label' => esc_html__('Margin', 'bdthemes-prime-slider'),
+                'type' => Controls_Manager::DIMENSIONS,
+                'selectors' => [
+                    '{{WRAPPER}} .bdt-prime-slider .bdt-slide-play-button' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+        $this->add_responsive_control(
+            'slide_play_button_font_size',
+            [
+                'label' => esc_html__('Icon Size', 'bdthemes-prime-slider'),
+                'type' => Controls_Manager::SLIDER,
+                'selectors' => [
+                    '{{WRAPPER}} .bdt-prime-slider .bdt-slide-play-button a' => 'font-size: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
 
         $this->add_group_control(
             Group_Control_Typography::get_type(),
             [
                 'name' => 'slide_play_button_typography',
+                'label' => esc_html__('Typography (Depricated)', 'bdthemes-prime-slider'),
                 'selector' => '{{WRAPPER}} .bdt-prime-slider .bdt-slide-play-button a',
                 'condition' => [
                     '_skin!' => ['slice'],
@@ -1550,13 +1606,13 @@ class Isolate extends Widget_Base {
                 'selectors' => [
                     '{{WRAPPER}} .bdt-prime-slider .bdt-slide-play-button a:hover' => 'border-color: {{VALUE}};',
                 ],
+                'condition' => [
+                    'slide_play_button_border_border!' => '',
+                ],
             ]
         );
-
         $this->end_controls_tab();
-
         $this->end_controls_tabs();
-
         $this->end_controls_section();
 
         $this->start_controls_section(
@@ -2625,13 +2681,13 @@ class Isolate extends Widget_Base {
 		}
 
         if ('shadow-pulse' == $settings['fancy_animation']) {
-            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-center bdt-shadow-pulse reveal-muted', true);
+            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-absolute bdt-shadow-pulse reveal-muted', true);
         } elseif ('line-bounce' == $settings['fancy_animation']) {
-            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-center bdt-line-bounce reveal-muted', true);
+            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-absolute bdt-line-bounce reveal-muted', true);
         } elseif ('multi-shadow' == $settings['fancy_animation']) {
-            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-center bdt-multi-shadow reveal-muted', true);
+            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-absolute bdt-multi-shadow reveal-muted', true);
         } else {
-            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-center reveal-muted', true);
+            $this->add_render_attribute('lightbox', 'class', 'bdt-slide-play-button bdt-position-absolute reveal-muted', true);
         }
 
         ?>
@@ -2680,7 +2736,7 @@ class Isolate extends Widget_Base {
         <div class="bdt-slideshow-content-wrapper">
             <div class="bdt-prime-slider-wrapper">
                 <div class="bdt-prime-slider-content">
-                    <div class="bdt-prime-slider-desc">
+                    <div class="bdt-prime-slider-desc bdt-flex bdt-flex-column">
 
                         <?php if ($slide_content['sub_title'] && ('yes' == $settings['show_sub_title'])): ?>
                             <div class="bdt-sub-title bdt-ps-sub-title">
