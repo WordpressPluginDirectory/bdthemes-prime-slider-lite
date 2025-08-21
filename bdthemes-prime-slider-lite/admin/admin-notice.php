@@ -21,59 +21,13 @@ class Notices {
 	public function __construct() {
 
 		// Admin API Notices
-		add_action('admin_notices', [$this, 'show_api_notices']);
 		add_action('admin_notices', [$this, 'cleanup_expired_dismissals']);
 
 		add_action('admin_notices', [$this, 'show_notices']);
 		add_action('wp_ajax_prime-slider-notices', [$this, 'dismiss']);
-	}
 
-	/**
-	 * Fetch and display notices from API
-	 */
-	public function show_api_notices() {
-		$notices = $this->get_api_notices_data();
-		
-		// Group notices by notice_class to avoid duplicates
-		$grouped_notices = [];
-		
-		if (is_array($notices)) {
-			foreach ($notices as $index => $notice) {
-				// Check if notice is enabled and within date range
-				if ($this->should_show_notice($notice)) {
-					$notice_class = isset($notice->notice_class) ? $notice->notice_class : 'default-' . $index;
-					
-					// Check if we should show this notice based on plugin priority
-					if ($this->should_show_notice_based_on_priority($notice)) {
-						// Check if another plugin has already shown this notice
-						if ($this->should_show_notice_cross_plugin($notice)) {
-							// Group by notice_class, keeping the first valid notice
-							if (!isset($grouped_notices[$notice_class])) {
-								$grouped_notices[$notice_class] = $notice;
-							}
-						}
-					}
-				}
-			}
-			
-			// Process grouped notices to avoid duplicates
-			foreach ($grouped_notices as $notice_class => $notice) {
-				$notice_id = isset($notice->id) ? $notice->id : 'api-notice-' . $notice_class;
-				
-				// Check if this notice should be shown (not dismissed)
-				if (!$this->is_notice_dismissed($notice_id)) {
-					// Store notice data for dismissal reference
-					$this->store_notice_data($notice_id, $notice);
-					
-					self::add_notice([
-						'id' => 'api-notice-' . $notice_id,
-						'type' => isset($notice->type) ? $notice->type : 'info',
-						'dismissible' => true,
-						'html_message' => $this->render_api_notice($notice),
-					]);
-				}
-			}
-		}
+		// AJAX endpoint to fetch API notices on demand (after page load)
+		add_action('wp_ajax_ps_fetch_api_notices', [$this, 'ajax_fetch_api_notices']);
 	}
 
 	/**
@@ -82,13 +36,21 @@ class Notices {
 	 * @return array|mixed
 	 */
 	private function get_api_notices_data() {
+		// 6-hour transient cache for API response
+		$transient_key = 'ps_api_notices_prime_slider';
+		$cached = get_transient($transient_key);
+		if ($cached !== false && is_array($cached)) {
+			return $cached;
+		}
+
 		// API endpoint for notices - you can change this to your actual endpoint
-		$api_url = 'https://store.bdthemes.com/api/notices/api-data-by-product';
+		$api_url = 'https://store.bdthemes.com/api/notices/api-data-records';
 
 		$response = wp_remote_get($api_url, [
 			'timeout' => 30,
 			'headers' => [
 				'Accept' => 'application/json',
+				'X-ALLOW-KEY'  => 'bdthemes',
 			],
 		]);
 
@@ -97,13 +59,16 @@ class Notices {
 		}
 
 		$response_code = wp_remote_retrieve_response_code($response);
-
 		$response_body = wp_remote_retrieve_body($response);
-
 		$notices = json_decode($response_body);
 		
 		if( isset($notices->api) && isset($notices->api->{'prime-slider'}) ) {
-			return $notices->api->{'prime-slider'};
+			$data = $notices->api->{'prime-slider'};
+			if (is_array($data)) {
+				$ttl = apply_filters('ps_api_notices_cache_ttl', 6 * HOUR_IN_SECONDS);
+				set_transient($transient_key, $data, $ttl);
+				return $data;
+			}
 		}
 
 		return [];
@@ -210,99 +175,6 @@ class Notices {
 	}
 
 	/**
-	 * Check if a notice should be shown based on plugin priority
-	 * This is used when both plugins are installed to avoid duplicate notices
-	 *
-	 * @param object $notice The notice data from the API.
-	 * @return bool True if the notice should be shown, false otherwise.
-	 */
-	private function should_show_based_on_priority($notice) {
-		// If only one plugin is installed, show the notice
-		if (!$this->are_both_plugins_installed()) {
-			return true;
-		}
-		
-		// If both plugins are installed, check priority
-		$current_priority = $this->get_plugin_priority();
-		
-		// Lite version has priority 1, Pro version has priority 2
-		// Only show notices from the plugin with the highest priority (lowest number)
-		if ($current_priority === 1) {
-			// Lite version - show notices
-			return true;
-		} else {
-			// Pro version - don't show notices when both are installed
-			return false;
-		}
-	}
-
-	/**
-	 * Check if we should show this notice based on plugin priority
-	 * This prevents duplicate notices when both lite and pro versions are installed
-	 *
-	 * @param object $notice The notice data from the API.
-	 * @return bool True if the notice should be shown, false otherwise.
-	 */
-	private function should_show_notice_based_on_priority($notice) {
-		// If only one plugin is installed, show the notice
-		if (!$this->are_both_plugins_installed()) {
-			return true;
-		}
-		
-		// If both plugins are installed, check priority
-		$current_priority = $this->get_plugin_priority();
-		
-		// Lite version has priority 1, Pro version has priority 2
-		// Only show notices from the plugin with the highest priority (lowest number)
-		if ($current_priority === 1) {
-			// Lite version - show notices
-			return true;
-		} else {
-			// Pro version - don't show notices when both are installed
-			return false;
-		}
-	}
-
-	/**
-	 * Check if another plugin has already shown this notice
-	 * This prevents duplicate notices across different plugins with same codebase
-	 * Uses a global option to prevent duplicates across plugin instances
-	 *
-	 * @param object $notice The notice data from the API.
-	 * @return bool True if the notice should be shown, false if already shown by another plugin.
-	 */
-	private function should_show_notice_cross_plugin($notice) {
-		$notice_class = isset($notice->notice_class) ? $notice->notice_class : '';
-		
-		if (empty($notice_class)) {
-			return true; // No notice_class, show it
-		}
-		
-		// Use a global option to track notices shown across all plugin instances
-		$global_notice_key = 'bdt_global_notice_' . $notice_class;
-		$global_notice_data = get_option($global_notice_key, false);
-		
-		// Check if this notice was shown in the last few seconds (same page load)
-		if ($global_notice_data && is_array($global_notice_data)) {
-			$time_diff = time() - $global_notice_data['timestamp'];
-			
-			// If notice was shown in the last 10 seconds, consider it a duplicate
-			if ($time_diff < 10) {
-				return false;
-			}
-		}
-		
-		// Mark this notice as shown globally with current timestamp
-		update_option($global_notice_key, [
-			'plugin' => $this->get_current_plugin_slug(),
-			'timestamp' => time(),
-			'notice_class' => $notice_class
-		]);
-		
-		return true;
-	}
-
-	/**
 	 * Check if a notice is compatible with the current plugin installation
 	 *
 	 * @param object $notice The notice data from the API.
@@ -353,58 +225,10 @@ class Notices {
 						return true;
 					}
 					break;
-					
-				case 'both':
-					if ($is_lite_active && $is_pro_active) {
-						return $this->should_show_based_on_priority($notice);
-					} elseif ($is_lite_active && !$is_pro_active) {
-						return true;
-					} elseif ($is_pro_plugin && !$is_lite_active) {
-						return true;
-					}
-					break;
 			}
 		}
 		
 		return false;
-	}
-
-	/**
-	 * Get plugin priority for notice display
-	 * This helps determine which plugin should show notices when both are installed
-	 *
-	 * @return int Priority number (lower = higher priority)
-	 */
-	private function get_plugin_priority() {
-		$current_plugin_slug = $this->get_current_plugin_slug();
-		
-		// Lite version has higher priority (shows notices first)
-		if ($current_plugin_slug === 'bdthemes-prime-slider-lite') {
-			return 1;
-		}
-		
-		// Pro version has lower priority
-		if ($current_plugin_slug === 'bdthemes-prime-slider') {
-			return 2;
-		}
-		
-		// Default priority
-		return 999;
-	}
-
-	/**
-	 * Check if both plugins are installed and active
-	 *
-	 * @return bool
-	 */
-	private function are_both_plugins_installed() {
-		// Check if lite plugin is active
-		$lite_active = is_plugin_active('bdthemes-prime-slider-lite/bdthemes-prime-slider.php');
-		
-		// Check if pro plugin is active
-		$pro_active = is_plugin_active('bdthemes-prime-slider/bdthemes-prime-slider.php');
-		
-		return $lite_active && $pro_active;
 	}
 
 	/**
@@ -502,7 +326,6 @@ class Notices {
 									<div class="nm-notice-btn">
 										<?php echo isset($notice->button_text) ? esc_html($notice->button_text) : 'Read More'; ?>
 										<span class="dashicons dashicons-arrow-right-alt"></span>
-										<div class="zolo-star zolo-star-1">✦</div><div class="zolo-star zolo-star-2">✦</div><div class="zolo-star zolo-star-3">✦</div><div class="zolo-star zolo-star-4">✦</div><div class="zolo-star zolo-star-5">✦</div><div class="zolo-star zolo-star-6">✦</div>
 									</div>
 								</a>
 							</div>
@@ -522,6 +345,58 @@ class Notices {
 	}
 
 	/**
+	 * AJAX: Build and return API notices HTML for dynamic injection
+	 */
+	public function ajax_fetch_api_notices() {
+		$nonce = isset($_POST['_wpnonce']) ? sanitize_text_field($_POST['_wpnonce']) : '';
+		if (!wp_verify_nonce($nonce, 'prime-slider')) {
+			wp_send_json_error([ 'message' => 'invalid_nonce' ]);
+		}
+
+		if (!current_user_can('manage_options')) {
+			wp_send_json_error([ 'message' => 'forbidden' ]);
+		}
+
+		$notices = $this->get_api_notices_data();
+		$grouped_notices = [];
+
+		if (is_array($notices)) {
+			foreach ($notices as $index => $notice) {
+				if ($this->should_show_notice($notice)) {
+					$notice_class = isset($notice->notice_class) ? $notice->notice_class : 'default-' . $index;
+					if (!isset($grouped_notices[$notice_class])) {
+						$grouped_notices[$notice_class] = $notice;
+					}
+				}
+			}
+		}
+
+		// Build notices using the same pipeline as synchronous rendering
+		foreach ($grouped_notices as $notice_class => $notice) {
+			$notice_id = isset($notice->id) ? $notice_class : $notice->id;
+			if ($this->is_notice_dismissed($notice_id)) {
+				continue;
+			}
+			$this->store_notice_data($notice_id, $notice);
+
+			self::add_notice([
+				'id' => 'api-notice-' . $notice_id,
+				'type' => isset($notice->type) ? $notice->type : 'info',
+				'dismissible' => true,
+				'html_message' => $this->render_api_notice($notice),
+				'dismissible-meta' => 'transient',
+				'dismissible-time' => isset($notice->end_date) ? max((new \DateTime($notice->end_date, new \DateTimeZone('UTC')))->getTimestamp() - time(), 0) : WEEK_IN_SECONDS,
+			]);
+		}
+
+		ob_start();
+		$this->show_notices();
+		$markup = ob_get_clean();
+
+		wp_send_json_success([ 'html' => $markup ]);
+	}
+
+	/**
 	 * Dismiss Notice.
 	 */
 	public function dismiss() {
@@ -530,7 +405,7 @@ class Notices {
 		$time = (isset($_POST['time'])) ? esc_attr($_POST['time']) : '';
 		$meta = (isset($_POST['meta'])) ? esc_attr($_POST['meta']) : '';
 
-		if ( ! wp_verify_nonce($nonce, 'bdthemes-prime-slider-lite') ) {
+		if ( ! wp_verify_nonce($nonce, 'bdthemes-prime-slider-lite') && ! wp_verify_nonce($nonce, 'prime-slider') ) {
 			wp_send_json_error();
 		}
 
@@ -542,7 +417,7 @@ class Notices {
 		 * Valid inputs?
 		 */
 		if (!empty($id)) {
-
+			// Handle regular notices
 			if ('user' === $meta) {
 				update_user_meta(get_current_user_id(), $id, true);
 			} else {
@@ -576,41 +451,6 @@ class Notices {
 		];
 		
 		update_user_meta(get_current_user_id(), 'ps_stored_notices', $stored_notices);
-	}
-
-	/**
-	 * Dismiss API notice
-	 *
-	 * @param string $notice_id
-	 */
-	private function dismiss_api_notice($notice_id) {
-		$dismissed_notices = get_user_meta(get_current_user_id(), 'ps_dismissed_notices', true);
-		
-		if (!is_array($dismissed_notices)) {
-			$dismissed_notices = [];
-		}
-
-		// Get the stored notice data
-		$stored_notices = get_user_meta(get_current_user_id(), 'ps_stored_notices', true);
-		$notice_data = null;
-		
-		if (is_array($stored_notices) && isset($stored_notices[$notice_id])) {
-			$notice_data = $stored_notices[$notice_id];
-		}
-		
-		// Store dismissal with end date and timezone for future reference
-		if ($notice_data && isset($notice_data['end_date'])) {
-			$dismissed_notices[$notice_id] = [
-				'end_date' => $notice_data['end_date'],
-				'timezone' => $notice_data['timezone'],
-				'dismissed_at' => current_time('mysql')
-			];
-		} else {
-			// Fallback: store as permanently dismissed if no end date
-			$dismissed_notices[$notice_id] = true;
-		}
-		
-		update_user_meta(get_current_user_id(), 'ps_dismissed_notices', $dismissed_notices);
 	}
 
 	/**
@@ -776,7 +616,7 @@ class Notices {
 		}
 
 	?>
-		<div id="<?php echo esc_attr($notice['id']); ?>" class="<?php echo esc_attr($notice['classes']); ?>" <?php echo esc_attr($notice['data']); ?> style="display: none;">
+		<div id="<?php echo esc_attr($notice['id']); ?>" class="<?php echo esc_attr($notice['classes']); ?>" <?php echo esc_attr($notice['data']); ?>>
 			<div class="bdt-notice-wrapper">
 				<div class="bdt-notice-icon-wrapper">
 					<img height="25" width="25" src="<?php echo esc_url (BDTPS_CORE_ASSETS_URL ); ?>images/logo.png">
@@ -797,56 +637,16 @@ class Notices {
 				</div>
 			</div>
 		</div>
-		<script>
-			document.addEventListener('DOMContentLoaded', function () {
-				setTimeout(function () {
-					document.querySelectorAll('.notice.prime-slider-notice').forEach(function (notice) {
-
-						// Show with fade-in
-						notice.style.display = 'block';
-						notice.style.opacity = 0;
-						notice.style.transition = 'opacity 0.8s ease-in-out';
-
-						requestAnimationFrame(function () {
-							notice.style.opacity = 1;
-						});
-					});
-				}, 500); // delay before showing
-			});
-		</script>
+		
 <?php
 	}
 
 	public static function new_notice_layout( $notice = [] ) {
-
 		?>
-		<div id="<?php echo esc_attr( $notice['id'] ); ?>" class="<?php echo esc_attr( $notice['classes'] ); ?>" <?php echo esc_attr( $notice['data'] ); ?> style="display: none;">
-
-				
-			<?php 
-				echo wp_kses_post( $notice['html_message'] );
-			?>
-			
-
-
+		<div id="<?php echo esc_attr( $notice['id'] ); ?>" class="<?php echo esc_attr( $notice['classes'] ); ?>" <?php echo esc_attr( $notice['data'] ); ?>>				
+			<?php echo wp_kses_post( $notice['html_message'] );	?>
 		</div>
-		<script>
-			document.addEventListener('DOMContentLoaded', function () {
-				setTimeout(function () {
-					document.querySelectorAll('.notice.prime-slider-notice').forEach(function (notice) {
-
-						// Show with fade-in
-						notice.style.display = 'block';
-						notice.style.opacity = 0;
-						notice.style.transition = 'opacity 0.8s ease-in-out';
-
-						requestAnimationFrame(function () {
-							notice.style.opacity = 1;
-						});
-					});
-				}, 500); // delay before showing
-			});
-		</script>
+		
 		<?php
 	}
 }
