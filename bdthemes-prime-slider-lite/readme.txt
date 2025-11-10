@@ -1,11 +1,11 @@
 === Prime Slider - Addons for Elementor ===
-Contributors: bdthemes, selimmw, mohammaadfarid, abutalib, maudud, muhammadasik
+Contributors: bdthemes, selimmw, mohammaadfarid, abutalib, maudud, muhammadasik, syedfarhanreza, arafatakashakku, shmusuf
 Donate link: http://bdthemes.com/
 Tags: layer slider, content slider, elementor addon, image slider, video slider
 Requires at least: 5.0.0
 Tested up to: 6.8.3
 Requires PHP: 7.4.0
-Stable tag: 4.0.2
+Stable tag: 4.0.3
 License: GPL3
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Elementor requires at least: 3.28
@@ -18,6 +18,8 @@ Create responsive sliders using Elementor for hero sections, posts, logos, image
 Prime Slider is an Elementor addon that lets you build and customize a slider for any purpose. You can design a Hero Slider for your homepage, a Post Slider to feature recent articles, an Ecommerce Slider to highlight products, or a Content Slider to organize information in a clean, dynamic layout. Everything works smoothly inside Elementor’s drag-and-drop editor.
 
 The plugin includes 30+ free widgets, 8 skins, 3 essential features, and 75+ ready-made sliders that help you create visually appealing and fully responsive designs.
+
+### [🎉 Black Friday Offer: Upgrade to Pro and Save up to 87% on All Plugins! 🎊](https://bdthemes.com/deals/?utm_source=WordPress_org&utm_medium=bfcm_cta&utm_campaign=prime_slider)
 
 Available Slider Types:
 
@@ -255,6 +257,13 @@ https://youtu.be/WhhdCWtPHvA?si=28X_56Pg2sD_vRKe
 
 
 == Changelog ==
+
+= 4.0.3 [9th November 2025] =
+
+* Added: Title hover color control added in mount widget
+* Fixed: Title color issue fixed in mount widget
+* Fixed: scrolling speed control issue fixed in pagepiling widget 
+* Fixed: Title color issue fixed in pagepiling widget 
 
 = 4.0.2 [3rd November 2025] =
 
