@@ -5,11 +5,11 @@ Tags: layer slider, content slider, elementor addon, image slider, video slider
 Requires at least: 5.0.0
 Tested up to: 6.9
 Requires PHP: 7.4.0
-Stable tag: 4.0.9
+Stable tag: 4.1.1
 License: GPL3
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Elementor requires at least: 3.28
-Elementor tested up to: 3.33.2
+Elementor tested up to: 3.33.6
 
 Create responsive sliders using Elementor for hero sections, posts, logos, images, products, testimonials, and more.
 
@@ -257,6 +257,22 @@ https://youtu.be/WhhdCWtPHvA?si=28X_56Pg2sD_vRKe
 
 
 == Changelog ==
+
+= 4.1.1 [22nd December 2025] =
+
+* Added: New control to change the hard-coded “Follow Us” text in the general and mount widgets
+* Added: New control to change the hard-coded “Previous Slide and Next Slide” text in the elysium widget
+* Added: New control to change the hard-coded “Follow Us” text in the blog widget for folio skin
+* Added: WPML compatiblity added
+
+= 4.1.0 [14th December 2025] =
+
+* Added: WPML compatibility added
+* Fixed: Security issue fixed
+
+= 4.0.10 [11th December 2025] =
+
+* Fixed: Security issue fixed
 
 = 4.0.9 [2nd December 2025] =
 
