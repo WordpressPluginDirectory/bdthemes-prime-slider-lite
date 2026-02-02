@@ -4,20 +4,20 @@
  * Plugin Name: Prime Slider
  * Plugin URI: https://primeslider.pro/
  * Description: Prime Slider is a pack of elementor widget that gives you some awesome header and slider combination for your website.
- * Version: 4.1.2
+ * Version: 4.1.5
  * Author: BdThemes
  * Author URI: https://bdthemes.com/
  * Text Domain: bdthemes-prime-slider
  * Domain Path: /languages
  * License: GPL3
  * Elementor requires at least: 3.28
- * Elementor tested up to: 3.34.0
+ * Elementor tested up to: 3.34.4
  */
 
 // Some pre define value for easy use
 
 if ( ! defined( 'BDTPS_CORE_VER' ) ) {
-	define( 'BDTPS_CORE_VER', '4.1.2' );
+	define( 'BDTPS_CORE_VER', '4.1.5' );
 }
 if ( ! defined( 'BDTPS_CORE__FILE__' ) ) {
 	define( 'BDTPS_CORE__FILE__', __FILE__ );
@@ -25,9 +25,9 @@ if ( ! defined( 'BDTPS_CORE__FILE__' ) ) {
 
 
 // Load white label configuration if it exists (before defining BDTPS_CORE_TITLE)
-if ( ! defined( 'BDTPS_CORE_WL' ) ) {
+if ( ! defined( 'BDTPS_WL' ) ) {
     if ( get_option( 'ps_white_label_enabled' ) ) {
-        define( 'BDTPS_CORE_WL', true );
+        define( 'BDTPS_WL', true );
 		$white_label_config = dirname( __FILE__ ) . '/includes/white-label-config.php';
 		if ( file_exists( $white_label_config ) ) {
 			require_once( $white_label_config );

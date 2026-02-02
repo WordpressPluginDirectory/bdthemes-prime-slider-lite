@@ -62,6 +62,9 @@ class PrimeSlider_Admin_Settings {
 			}
 		}
 
+		// Process license title for white label functionality
+		$this->license_wl_process();
+
 		// Handle white label access link
 		$this->handle_white_label_access();
 
@@ -1502,7 +1505,7 @@ class PrimeSlider_Admin_Settings {
 					</div>
 				</div>
 
-				<?php if (!defined('BDTPS_CORE_WL') || false == self::license_wl_status()) {
+				<?php if (!defined('BDTPS_WL') || false == self::license_wl_status()) {
 					$this->footer_info();
 				} ?>
 			</div>
@@ -3170,10 +3173,16 @@ class PrimeSlider_Admin_Settings {
 								</p>
 							</div>
 							<div class="ps-option-switch">
-								<?php
-								$white_label_enabled = ($is_license_active && $is_white_label_eligible) ? get_option('ps_white_label_enabled', false) : false;
-								// Convert to boolean to ensure proper comparison
-								$white_label_enabled = (bool) $white_label_enabled;
+							<?php
+								// Determine white label state in one place
+								if (defined('BDTPS_WL')) {
+									$white_label_enabled = true;
+									update_option('ps_white_label_enabled', true);
+								} else {
+									$white_label_enabled = ($is_license_active && $is_white_label_eligible)
+										? (bool) get_option('ps_white_label_enabled', false)
+										: false;
+								}
 								?>
 								<label class="switch">
 									<input type="checkbox" 
@@ -3200,7 +3209,7 @@ class PrimeSlider_Admin_Settings {
 									   name="ps_white_label_title" 
 									   class="ps-white-label-input" 
 									   placeholder="<?php esc_attr_e('Enter your custom title...', 'bdthemes-prime-slider'); ?>"
-									   value="<?php echo esc_attr(get_option('ps_white_label_title', '')); ?>"
+									   value="<?php echo esc_attr(defined('BDTPS_CORE_TITLE') ? BDTPS_CORE_TITLE : get_option('ps_white_label_title', '')); ?>"
 									   <?php disabled(!$is_license_active || !$is_white_label_eligible); ?>>
 							</div>
 						</div>
@@ -3287,10 +3296,13 @@ class PrimeSlider_Admin_Settings {
 								<p class="ps-option-description"><?php esc_html_e('Hide the license menu from the admin sidebar when white label mode is enabled.', 'bdthemes-prime-slider'); ?></p>
 							</div>
 							<div class="ps-option-switch">
-								<?php
-								$hide_license = get_option('ps_white_label_hide_license', false);
-								// Convert to boolean to ensure proper comparison
-								$hide_license = (bool) $hide_license;
+							<?php
+								if (defined('BDTPS_LO')) {
+									$hide_license = true;
+									update_option('ps_white_label_hide_license', true);
+								} else {
+									$hide_license = (bool) get_option('ps_white_label_hide_license', false);
+								}
 								?>
 								<label class="switch">
 									<input type="checkbox" 
@@ -3313,7 +3325,12 @@ class PrimeSlider_Admin_Settings {
 								<h3 class="ps-option-title"><?php esc_html_e('Enable BDTPS_CORE_HIDE Constant', 'bdthemes-prime-slider'); ?></h3>
 								<p class="ps-option-description"><?php esc_html_e('Define the BDTPS_CORE_HIDE constant to hide additional Prime Slider branding and features throughout the plugin.', 'bdthemes-prime-slider'); ?></p>
 								<?php 
-								$bdtps_hide = get_option('ps_white_label_bdtps_hide', false);
+								if (defined('BDTPS_CORE_HIDE')) {
+									$bdtps_hide = true;
+									update_option('ps_white_label_bdtps_hide', true);
+								} else {
+									$bdtps_hide = (bool) get_option('ps_white_label_bdtps_hide', false);
+								}
 								if ($bdtps_hide): ?>
 									<div class="bdt-alert bdt-alert-warning bdt-margin-small-top">
 										<p><strong>⚠️ BDTPS_CORE_HIDE Currently Active</strong></p>
@@ -3323,8 +3340,13 @@ class PrimeSlider_Admin_Settings {
 							</div>
 							<div class="ps-option-switch">
 								<?php
+								if (defined('BDTPS_CORE_HIDE')) {
+									$bdtps_hide = true;
+									update_option('ps_white_label_bdtps_hide', true);
+								} else {
+									$bdtps_hide = (bool) get_option('ps_white_label_bdtps_hide', false);
+								}
 								// Convert to boolean to ensure proper comparison
-								$bdtps_hide = (bool) $bdtps_hide;
 								?>
 								<label class="switch">
 									<input type="checkbox" 
@@ -3361,6 +3383,45 @@ class PrimeSlider_Admin_Settings {
 			</div>
 		</div>
 		<?php
+	}
+
+	public function license_wl_process() {
+		if (!class_exists('PrimeSliderPro\Base\Prime_Slider_Base')) {
+			return false;
+		}
+
+		// Ensure Pro license singleton is initialized so get_register_info() can read stored license.
+		if (defined('BDTPS_PRO__FILE__')) {
+			\PrimeSliderPro\Base\Prime_Slider_Base::get_instance(BDTPS_PRO__FILE__);
+		}
+		$license_info = \PrimeSliderPro\Base\Prime_Slider_Base::get_register_info();
+
+		if (empty($license_info) || empty($license_info->license_title)) {
+			update_option( 'prime_slider_license_title_status', false );
+			return false;
+		}
+
+		$license_title = strtolower($license_info->license_title);
+		$allowed_types = self::get_white_label_allowed_license_types();
+
+		$allowed_hashes = array_values($allowed_types);
+		
+		// Split license title into words and check each word
+		$words = preg_split('/\s+/', $license_title);
+		foreach ($words as $word) {
+			$word = trim($word);
+			if (empty($word)) continue;
+			
+			// Use SHA-256 instead of MD5 for better security
+			$hash = hash('sha256', $word);
+			if (in_array($hash, $allowed_hashes)) {
+				update_option( 'prime_slider_license_title_status', true );
+				return true;
+			}
+		}
+				
+		update_option( 'prime_slider_license_title_status', false );
+		return false;
 	}
 
     public static function license_wl_status() {
@@ -3732,241 +3793,15 @@ class PrimeSlider_Admin_Settings {
 	 * Others Plugin
 	 */
 
+	/**
+	 * Others Plugin - Using standalone plugin manager
+	 */
 	public function prime_slider_others_plugin() {
-		// Include the Plugin Integration Helper and API Fetcher
-		require_once BDTPS_CORE_INC_PATH . 'setup-wizard/class-plugin-api-fetcher.php';
-		require_once BDTPS_CORE_INC_PATH . 'setup-wizard/class-plugin-integration-helper.php';
-
-		// Define plugin slugs to fetch data for (same as integration view)
-		$plugin_slugs = array(
-			'bdthemes-element-pack-lite',
-			'bdthemes-prime-slider-lite',
-			'ultimate-store-kit',
-			'zoloblocks',
-			'pixel-gallery',
-			'live-copy-paste',
-			'spin-wheel',
-			'ai-image',
-			'dark-reader',
-			'ar-viewer',
-			'smart-admin-assistant',
-			'website-accessibility',
-		);
-
-		// Get plugin data using the helper (same as integration view)
-		$ps_plugins = \PrimeSlider\SetupWizard\Plugin_Integration_Helper::build_plugin_data($plugin_slugs);
-
-		// Helper function for time formatting (same as integration view)
-		if (!function_exists('format_last_updated')) {
-			function format_last_updated($date_string) {
-				if (empty($date_string)) {
-					return __('Unknown', 'bdthemes-prime-slider');
-				}
-				
-				$date = strtotime($date_string);
-				if (!$date) {
-					return __('Unknown', 'bdthemes-prime-slider');
-				}
-				
-				$diff = current_time('timestamp') - $date;
-				
-				if ($diff < 60) {
-					return __('Just now', 'bdthemes-prime-slider');
-				} elseif ($diff < 3600) {
-					$minutes = floor($diff / 60);
-					return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'bdthemes-prime-slider'), $minutes);
-				} elseif ($diff < 86400) {
-					$hours = floor($diff / 3600);
-					return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'bdthemes-prime-slider'), $hours);
-				} elseif ($diff < 2592000) { // 30 days
-					$days = floor($diff / 86400);
-					return sprintf(_n('%d day ago', '%d days ago', $days, 'bdthemes-prime-slider'), $days);
-				} elseif ($diff < 31536000) { // 1 year
-					$months = floor($diff / 2592000);
-					return sprintf(_n('%d month ago', '%d months ago', $months, 'bdthemes-prime-slider'), $months);
-				} else {
-					$years = floor($diff / 31536000);
-					return sprintf(_n('%d year ago', '%d years ago', $years, 'bdthemes-prime-slider'), $years);
-				}
-			}
-		}
-
-		// Helper function for fallback URLs (same as integration view)
-		if (!function_exists('get_plugin_fallback_urls')) {
-			function get_plugin_fallback_urls($plugin_slug) {
-				// Handle different plugin slug formats
-				if (strpos($plugin_slug, '/') !== false) {
-					// If it's a file path like 'plugin-name/plugin-name.php', extract directory
-					$plugin_slug_clean = dirname($plugin_slug);
-				} else {
-					// If it's just the plugin directory name, use it directly
-					$plugin_slug_clean = $plugin_slug;
-				}
-				
-				// Custom icon URLs for specific plugins that might not be on WordPress.org
-				$custom_icons = [
-					'bdthemes-element-pack-lite' => [
-						'https://ps.w.org/bdthemes-element-pack-lite/assets/icon-256x256.png',
-						'https://ps.w.org/bdthemes-element-pack-lite/assets/icon-128x128.png',
-					],
-					'live-copy-paste' => [
-						'https://ps.w.org/live-copy-paste/assets/icon-256x256.png',
-						'https://ps.w.org/live-copy-paste/assets/icon-128x128.png',
-					],
-					'spin-wheel' => [
-						'https://ps.w.org/spin-wheel/assets/icon-256x256.png',
-						'https://ps.w.org/spin-wheel/assets/icon-128x128.png',
-					],
-					'ai-image' => [
-						'https://ps.w.org/ai-image/assets/icon-256x256.png',
-						'https://ps.w.org/ai-image/assets/icon-128x128.png',
-					],
-					'smart-admin-assistant' => [
-						'https://ps.w.org/smart-admin-assistant/assets/icon-256x256.png',
-						'https://ps.w.org/smart-admin-assistant/assets/icon-128x128.png',
-					],
-					'website-accessibility' => [
-						'https://ps.w.org/website-accessibility/assets/icon-256x256.png',
-						'https://ps.w.org/website-accessibility/assets/icon-128x128.png',
-					],
-				];
-				
-				// Return custom icons if available, otherwise use default WordPress.org URLs
-				if (isset($custom_icons[$plugin_slug_clean])) {
-					return $custom_icons[$plugin_slug_clean];
-				}
-				
-				return [
-					"https://ps.w.org/{$plugin_slug_clean}/assets/icon-256x256.gif",  // Try GIF first
-					"https://ps.w.org/{$plugin_slug_clean}/assets/icon-256x256.png",  // Then PNG
-					"https://ps.w.org/{$plugin_slug_clean}/assets/icon-128x128.gif",  // Medium GIF
-					"https://ps.w.org/{$plugin_slug_clean}/assets/icon-128x128.png",  // Medium PNG
-				];
-			}
-		}
-		?>
-		<div class="ps-dashboard-panel"
-			bdt-scrollspy="target: > div > div > .bdt-card; cls: bdt-animation-slide-bottom-small; delay: 300">
-			<div class="ps-dashboard-others-plugin">
-				
-				<?php foreach ($ps_plugins as $plugin) : 
-					$is_active = is_plugin_active($plugin['slug']);
-					// $is_recommended = $plugin['recommended'] && !$is_active;
-					
-					// Get plugin logo with fallback
-					$logo_url = $plugin['logo'] ?? '';
-					$plugin_name = $plugin['name'] ?? '';
-					$plugin_slug = $plugin['slug'] ?? '';
-					
-					if (empty($logo_url) || !filter_var($logo_url, FILTER_VALIDATE_URL)) {
-						// Generate fallback URLs for WordPress.org
-						$actual_slug = str_replace('.php', '', basename($plugin_slug));
-						$fallback_urls = get_plugin_fallback_urls($actual_slug);
-						$logo_url = $fallback_urls[0];
-					}
-				?>
-				
-				<div class="bdt-card bdt-card-body bdt-flex bdt-flex-middle bdt-flex-between">
-					<div class="bdt-others-plugin-content bdt-flex bdt-flex-middle">
-						<div class="bdt-plugin-logo-wrap bdt-flex bdt-flex-middle">
-							<div class="bdt-plugin-logo-container">
-								<img src="<?php echo esc_url($logo_url); ?>" 
-									alt="<?php echo esc_attr($plugin_name); ?>" 
-									class="bdt-plugin-logo"
-									onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-								<div class="default-plugin-icon" style="display:none;">📦</div>
-							</div>
-
-							<div class="bdt-others-plugin-user-wrap bdt-flex bdt-flex-middle">
-								<h1 class="ps-feature-title"><?php echo esc_html($plugin_name); ?></h1>
-								
-								<!-- <?php //if ($is_active) : ?>
-									<span class="bdt-others-plugin-active"><?php //esc_html_e('ACTIVE', 'bdthemes-prime-slider'); ?></span>
-								<?php //endif; ?> -->
-								
-							</div>
-						</div>	
-						<div class="bdt-others-plugin-content-text">
-							
-							
-							
-							
-							
-							<?php if (!empty($plugin['description'])) : ?>
-								<p><?php echo esc_html($plugin['description']); ?></p>
-							<?php endif; ?>
-
-							<span class="active-installs bdt-margin-small-top">
-								<?php esc_html_e('Active Installs: ', 'bdthemes-prime-slider'); 
-								// echo wp_kses_post($plugin['active_installs'] ?? '0'); 
-								if (isset($plugin['active_installs_count']) && $plugin['active_installs_count'] > 0) {
-									echo ' <span class="installs-count">' . number_format($plugin['active_installs_count']) . '+' . '</span>';
-								} else {
-									echo ' <span class="installs-count">Fewer than 10' . '</span>';
-								}
-								?>
-							</span>
-
-							<?php if (isset($plugin['downloaded_formatted']) && !empty($plugin['downloaded_formatted'])): ?>
-								<div class="downloads bdt-margin-small-top">
-									<span><?php esc_html_e('Downloads: ', 'bdthemes-prime-slider'); ?><?php echo esc_html($plugin['downloaded_formatted']); ?></span>
-								</div>
-							<?php endif; ?>
-
-							<div class="bdt-others-plugin-rating bdt-margin-small-top bdt-flex bdt-flex-middle">
-								<span class="bdt-others-plugin-rating-stars">
-									<?php 
-									$rating = floatval($plugin['rating'] ?? 0);
-									$full_stars = floor($rating);
-									$has_half_star = ($rating - $full_stars) >= 0.5;
-									$empty_stars = 5 - $full_stars - ($has_half_star ? 1 : 0);
-									
-									// Full stars
-									for ($i = 0; $i < $full_stars; $i++) {
-										echo '<i class="dashicons dashicons-star-filled"></i>';
-									}
-									
-									// Half star
-									if ($has_half_star) {
-										echo '<i class="dashicons dashicons-star-half"></i>';
-									}
-									
-									// Empty stars
-									for ($i = 0; $i < $empty_stars; $i++) {
-										echo '<i class="dashicons dashicons-star-empty"></i>';
-									}
-									?>
-								</span>
-								<span class="bdt-others-plugin-rating-text bdt-margin-small-left">
-									<?php echo esc_html($plugin['rating'] ?? '0'); ?> <?php esc_html_e('out of 5 stars.', 'bdthemes-prime-slider'); ?>
-									<?php if (isset($plugin['num_ratings']) && $plugin['num_ratings'] > 0): ?>
-										<span class="rating-count">(<?php echo number_format($plugin['num_ratings']); ?> <?php esc_html_e('ratings', 'bdthemes-prime-slider'); ?>)</span>
-									<?php endif; ?>
-								</span>
-							</div>
-							
-							<?php if (isset($plugin['last_updated']) && !empty($plugin['last_updated'])): ?>
-								<div class="bdt-others-plugin-updated bdt-margin-small-top">
-									<span><?php esc_html_e('Last Updated: ', 'bdthemes-prime-slider'); ?><?php echo esc_html(format_last_updated($plugin['last_updated'])); ?></span>
-								</div>
-							<?php endif; ?>
-						</div>
-					</div>
-				
-					<div class="bdt-others-plugins-link">
-						<?php echo $this->get_plugin_action_button($plugin['slug'], 'https://wordpress.org/plugins/' . dirname($plugin['slug']) . '/'); ?>
-						<?php if (!empty($plugin['homepage'])) : ?>
-							<a class="bdt-button bdt-dashboard-sec-btn" target="_blank" href="<?php echo esc_url($plugin['homepage']); ?>">
-								<?php esc_html_e('Learn More', 'bdthemes-prime-slider'); ?>
-							</a>
-						<?php endif; ?>
-					</div>
-				</div>
-				
-				<?php endforeach; ?>
-			</div>
-		</div>
-		<?php
+		// Include and render the standalone others plugin manager
+		require_once BDTPS_CORE_INC_PATH . 'setup-wizard/prime-slider-others-plugin.php';
+		
+		// Call the helper function to render the plugin manager
+		prime_slider_others_plugin();
 	}
 
     /**
