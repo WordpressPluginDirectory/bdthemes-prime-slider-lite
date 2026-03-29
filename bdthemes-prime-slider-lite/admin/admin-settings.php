@@ -805,7 +805,7 @@ class PrimeSlider_Admin_Settings {
 	// Redirect to Prime Slider Pro pricing page
 	public function ps_redirect_to_get_pro() {
         if (isset($_GET['page']) && $_GET['page'] === self::PAGE_ID . '_get_pro') {
-            wp_redirect('https://bdthemes.com/deals/?utm_source=WordPress_org&utm_medium=bfcm_cta&utm_campaign=prime_slider');
+            wp_redirect('https://primeslider.pro/pricing/');
             exit;
         }
     }
@@ -909,17 +909,6 @@ class PrimeSlider_Admin_Settings {
 				'manage_options',
 				self::PAGE_ID . '#prime_slider_rollback_version',
 				[$this, 'plugin_page']
-			);
-		}
-
-		if (true !== _is_ps_pro_activated()) {
-			add_submenu_page(
-				self::PAGE_ID,
-				BDTPS_CORE_TITLE,
-				esc_html__('Black Friday Limited Offer Up To 87%', 'bdthemes-prime-slider'),
-				'manage_options',
-				self::PAGE_ID . '_get_pro',
-				[$this, 'display_page']
 			);
 		}
 	}
@@ -3481,7 +3470,7 @@ class PrimeSlider_Admin_Settings {
 		?>
 		<div class="ps-dashboard-widgets-status">
 			<div class="bdt-grid bdt-grid-medium" bdt-grid bdt-height-match="target: > div > .bdt-card">
-				<div class="bdt-width-1-2@m bdt-width-1-4@l">
+				<div class="bdt-width-1-2@m bdt-width-1-3@l">
 					<div class="ps-widget-status bdt-card bdt-card-body" <?php echo wp_kses_post($track_nw_msg); ?>>
 
 						<?php
@@ -3515,7 +3504,7 @@ class PrimeSlider_Admin_Settings {
 
 					</div>
 				</div>
-				<div class="bdt-width-1-2@m bdt-width-1-4@l">
+				<div class="bdt-width-1-2@m bdt-width-1-3@l">
 					<div class="ps-widget-status bdt-card bdt-card-body" <?php echo wp_kses_post($track_nw_msg); ?>>
 
 						<?php
@@ -3549,7 +3538,7 @@ class PrimeSlider_Admin_Settings {
 
 					</div>
 				</div>
-				<div class="bdt-width-1-2@m bdt-width-1-4@l">
+				<div class="bdt-width-1-2@m bdt-width-1-3@l">
 					<div class="ps-widget-status bdt-card bdt-card-body" <?php echo wp_kses_post($track_nw_msg); ?>>
 
 						<?php
@@ -3584,7 +3573,7 @@ class PrimeSlider_Admin_Settings {
 					</div>
 				</div>
 
-				<div class="bdt-width-1-2@m bdt-width-1-4@l">
+				<div class="bdt-width-1-2@m bdt-width-1-3@l">
 					<div class="ps-widget-status bdt-card bdt-card-body" <?php echo wp_kses_post($track_nw_msg); ?>>
 
 						<div class="ps-count-canvas-wrap">
