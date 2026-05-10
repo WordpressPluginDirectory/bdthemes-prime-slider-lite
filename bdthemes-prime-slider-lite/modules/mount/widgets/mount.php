@@ -8,7 +8,6 @@ use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Background;
 use Elementor\Group_Control_Box_Shadow;
-use Elementor\Group_Control_Image_Size;
 use Elementor\Group_Control_Text_Shadow;
 use Elementor\Group_Control_Text_Stroke;
 use PrimeSlider\Utils;
@@ -529,7 +528,8 @@ class Mount extends Widget_Base {
 			[
 				'label' => esc_html__('Advanced Style', 'bdthemes-prime-slider') . BDTPS_CORE_PC,
 				'type'  => Controls_Manager::SWITCHER,
-				'classes'    => BDTPS_CORE_IS_PC
+				'classes'   => BDTPS_CORE_IS_PC,
+				'condition' => [ 'show_title' => 'yes' ],
 			]
 		);
 
@@ -858,6 +858,21 @@ class Mount extends Widget_Base {
 			[
 				'label'     => __('Navigation', 'bdthemes-prime-slider'),
 				'tab'       => Controls_Manager::TAB_STYLE,
+				'conditions' => [
+					'relation' => 'or',
+					'terms'    => [
+						[
+							'name'     => 'show_navigation_arrows',
+							'operator' => '==',
+							'value'    => 'yes',
+						],
+						[
+							'name'     => 'show_navigation_dots',
+							'operator' => '==',
+							'value'    => 'yes',
+						],
+					],
+				],
 			]
 		);
 
@@ -884,6 +899,36 @@ class Mount extends Widget_Base {
 				'selectors' => [
 					'{{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-previous:hover svg, {{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-next:hover svg' => 'color: {{VALUE}}',
 					'{{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-next:before, {{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-previous:before' => 'background: {{VALUE}}',
+				],
+				'condition' => [
+					'show_navigation_arrows' => ['yes'],
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'arrows_spacing',
+			[
+				'label'      => __('Arrow Spacing', 'bdthemes-prime-slider'),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => ['px', '%', 'em'],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 200,
+					],
+					'%' => [
+						'min' => 0,
+						'max' => 50,
+					],
+					'em' => [
+						'min' => 0,
+						'max' => 10,
+					],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-previous' => 'margin-right: calc({{arrows_spacing.SIZE}}{{arrows_spacing.UNIT}}/2);',
+					'{{WRAPPER}} .bdt-prime-slider .bdt-prime-slider-next' => 'margin-left: calc({{arrows_spacing.SIZE}}{{arrows_spacing.UNIT}}/2);',
 				],
 				'condition' => [
 					'show_navigation_arrows' => ['yes'],
