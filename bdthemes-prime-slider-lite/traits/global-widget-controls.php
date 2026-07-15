@@ -882,8 +882,11 @@ trait Global_Widget_Controls {
 		$this->add_control(
 			'pause_on_hover',
 			[ 
-				'label' => esc_html__( 'Pause on Hover', 'bdthemes-prime-slider' ),
-				'type'  => Controls_Manager::SWITCHER,
+				'label' 	=> esc_html__( 'Pause on Hover', 'bdthemes-prime-slider' ),
+				'type'  	=> Controls_Manager::SWITCHER,
+				'condition' => [ 
+					'autoplay' => 'yes',
+				],
 			]
 		);
 
@@ -1846,8 +1849,11 @@ trait Global_Widget_Controls {
 		$this->add_control(
 			'pauseonhover',
 			[ 
-				'label' => esc_html__( 'Pause on Hover', 'bdthemes-prime-slider' ),
-				'type'  => Controls_Manager::SWITCHER,
+				'label' 	=> esc_html__( 'Pause on Hover', 'bdthemes-prime-slider' ),
+				'type'  	=> Controls_Manager::SWITCHER,
+				'condition' => [
+					'autoplay' => 'yes',
+				],
 			]
 		);
 	}

@@ -127,17 +127,17 @@ class Omatic extends Widget_Base {
 					[
 						'sub_title' => esc_html__('Explore', 'bdthemes-prime-slider'),
 						'title'     => esc_html__('Ps Item One', 'bdthemes-prime-slider'),
-						'image'     => ['url' => BDTPS_CORE_ASSETS_URL . 'images/gallery/item-1.svg']
+						'image'     => ['url' => BDTPS_CORE_ASSETS_URL . 'images/gallery/item-1.png']
 					],
 					[
 						'sub_title' => esc_html__('Explore', 'bdthemes-prime-slider'),
 						'title'     => esc_html__('Ps Item Two', 'bdthemes-prime-slider'),
-						'image'     => ['url' => BDTPS_CORE_ASSETS_URL . 'images/gallery/item-4.svg']
+						'image'     => ['url' => BDTPS_CORE_ASSETS_URL . 'images/gallery/item-4.png']
 					],
 					[
 						'sub_title' => esc_html__('Explore', 'bdthemes-prime-slider'),
 						'title'     => esc_html__('Ps Item Three', 'bdthemes-prime-slider'),
-						'image'     => ['url' => BDTPS_CORE_ASSETS_URL . 'images/gallery/item-5.svg']
+						'image'     => ['url' => BDTPS_CORE_ASSETS_URL . 'images/gallery/item-5.png']
 					],
 				],
 				'title_field' => '{{{ title }}}',
@@ -1202,7 +1202,7 @@ class Omatic extends Widget_Base {
 				'class' => 'swiper-carousel swiper',
 				'role' => 'region',
 				'aria-roledescription' => 'carousel',
-				'aria-label' => $this->get_title() . ' ' . esc_html__( 'Slider', 'bdthemes-prime-slider' ),
+				'aria-label' => esc_attr( $this->get_title() . ' ' . esc_html__( 'Slider', 'bdthemes-prime-slider' ) ),
 				'dir' => $direction,
 			],
 		]);
@@ -1249,7 +1249,7 @@ class Omatic extends Widget_Base {
 								<?php if ('' !== $slide['title_link']['url']) : ?>
 									<a <?php $this->print_render_attribute_string('title-link'); ?>>
 									<?php endif; ?>
-									<?php echo wp_kses_post(prime_slider_first_word($slide['title'])); ?>
+									<?php echo wp_kses( prime_slider_first_word( $slide['title'] ), [ 'span' => [ 'class' => [] ] ] ); ?>
 									<?php if ('' !== $slide['title_link']['url']) : ?>
 									</a>
 								<?php endif; ?>
@@ -1319,7 +1319,7 @@ class Omatic extends Widget_Base {
 		?>
 		<div class="bdt-sub-title-wrap">
 			<<?php echo esc_attr(Utils::get_valid_html_tag($settings['sub_title_html_tag'])); ?> class="bdt-sub-title">
-				<?php echo wp_kses($slide['sub_title'], prime_slider_allow_tags('title')); ?>
+				<?php echo esc_html( $slide['sub_title'] ); ?>
 			</<?php echo esc_attr(Utils::get_valid_html_tag($settings['sub_title_html_tag'])); ?>>
 			<span class="bdt-sub-line"></span>
 		</div>
@@ -1348,7 +1348,7 @@ class Omatic extends Widget_Base {
 
 		<div class="bdt-slide-img-wrap">
 			<div class="bdt-img-wrap">
-				<img class="bdt-img <?php echo esc_attr( $gl . $shutters . $slicer ); ?>" src="<?php echo esc_url($image_src); ?>" alt="<?php echo esc_html($alt); ?>">
+				<img class="bdt-img<?php echo esc_attr( $gl . $shutters . $slicer ); ?>" src="<?php echo esc_url($image_src); ?>" alt="<?php echo esc_attr($alt); ?>">
 			</div>
 		</div>
 
@@ -1362,7 +1362,7 @@ class Omatic extends Widget_Base {
 		
 			?>
 			<div class="bdt-slide-item swiper-slide">
-				<?php $this->rendar_item_image($slide); ?>
+				<?php $this->rendar_item_image( $slide, $slide['title'] ); ?>
 			</div>
 
         <?php endforeach;

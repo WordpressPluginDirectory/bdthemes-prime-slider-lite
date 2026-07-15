@@ -3,13 +3,13 @@ Contributors: bdthemes, selimmw, mohammaadfarid, abutalib, maudud, muhammadasik,
 Donate link: https://bdthemes.com/
 Tags: hero slider, content slider, elementor addon, image slider, video slider
 Requires at least: 5.0.0
-Tested up to: 6.9.4
+Tested up to: 7.0.1
 Requires PHP: 7.4.0
-Stable tag: 4.2.2
+Stable tag: 4.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Elementor requires at least: 3.28
-Elementor tested up to: 4.0.7
+Elementor requires at least: 4.0.0
+Elementor tested up to: 4.1.4
 
 Create responsive sliders using Elementor for hero sections, posts, logos, images, products, testimonials, and more.
 
@@ -273,6 +273,39 @@ https://youtu.be/WhhdCWtPHvA?si=28X_56Pg2sD_vRKe
 
 
 == Changelog ==
+
+= 4.4.3 [14th July 2026] =
+
+* Fixed: Output escaping issues in the mercury, mount, omatic and pacific widgets
+
+= 4.4.2 [29th June 2026] =
+
+* Fixed: Active thumb background, border and line color controls not applying correctly in the rubix widget
+* Fixed: Title color changing unexpectedly when a title link is added in the sequester widget
+* Fixed: Pause on Hover control now only shows when autoplay is enabled
+* Fixed: Meta separator rendering incorrectly when only author or date is shown in the storker widget
+* Fixed: Page speed issue fixed ( Thanks to Chris )
+
+= 4.4.1 [15th June 2026] =
+
+* Fixed: Swiper GL effect not working properly in the omatic and sniper widgets
+* Fixed: Active pagination separator line incorrectly changing color on hover in the pacific widget
+* Fixed: Pagination dot color and opacity not applying correctly in the storker widget
+
+= 4.4.0 [3rd June 2026] =
+
+* Added: Ring widget added (pro)
+* Fixed: Quantity field height now matches the add to cart button in the woocircle widget
+
+= 4.3.1 [21st May 2026] =
+
+* Updated: Made compatible with WordPress version 7.0
+* Fixed: Pause on Hover issues in the pacific, elysium and rubix widgets
+
+= 4.3.0 [10th May 2026] =
+
+* Added: Panorama widget added (pro)
+* Updated: System improved
 
 = 4.2.2 [10th May 2026] =
 
@@ -611,6 +644,10 @@ Details [changelog here](https://feedback.bdthemes.com/announcements?category=ca
 ### How can I report security bugs? 
 
 - You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/9e5fb813-d8f7-41ad-ad27-748af1395dfb)
+
+### Is Prime Slider compatible with managed WordPress hosting? 
+
+- Prime Slider has been tested on popular managed WordPress hosting environments, including [Kinsta](https://kinsta.com/).
 
 
 == Screenshots ==
