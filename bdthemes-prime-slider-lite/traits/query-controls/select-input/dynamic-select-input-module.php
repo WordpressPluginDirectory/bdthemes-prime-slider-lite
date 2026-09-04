@@ -47,10 +47,10 @@ class Dynamic_Select_Input_Module
 	 */
 	public function getSelectInputData()
 	{
-		$nonce = isset($_POST['security']) ? $_POST['security'] : '';
+		$nonce = isset($_POST['security']) ? sanitize_text_field(wp_unslash($_POST['security'])) : '';
 
 		try {
-			if (!wp_verify_nonce($nonce, 'ps_dynamic_select')) {
+			if (!wp_verify_nonce($nonce, 'bdtps_dynamic_select')) {
 				throw new Exception('Invalid request');
 			}
 
@@ -58,7 +58,7 @@ class Dynamic_Select_Input_Module
 				throw new Exception('Unauthorized request');
 			}
 
-			$query = isset($_POST['query']) ? $_POST['query'] : '';
+			$query = isset($_POST['query']) ? sanitize_key(wp_unslash($_POST['query'])) : '';
 
 			if ($query == 'terms') {
 				$data = $this->getTerms();
@@ -86,7 +86,21 @@ class Dynamic_Select_Input_Module
 	 */
 	protected function getPostType()
 	{
-		return isset($_POST['post_type']) ? sanitize_text_field($_POST['post_type']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified in getSelectInputData().
+		$post_type = isset($_POST['post_type']) ? sanitize_key(wp_unslash($_POST['post_type'])) : '';
+
+		if ('' === $post_type) {
+			return '';
+		}
+
+		// '_related_post_type' is an internal marker handled by the callers, everything
+		// else must be a registered public post type so the endpoint cannot be used to
+		// enumerate private or internal post types.
+		if ('_related_post_type' === $post_type) {
+			return $post_type;
+		}
+
+		return in_array($post_type, $this->getAllPublicPostTypes(), true) ? $post_type : '';
 	}
 
 	/**
@@ -102,15 +116,24 @@ class Dynamic_Select_Input_Module
 	 */
 	protected function getSearchQuery()
 	{
-		return isset($_POST['search_text']) ? sanitize_text_field($_POST['search_text']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified in getSelectInputData().
+		return isset($_POST['search_text']) ? sanitize_text_field(wp_unslash($_POST['search_text'])) : '';
 	}
 
 	/**
-	 * @return array|mixed
+	 * @return array
 	 */
 	protected function getselecedIds()
 	{
-		return isset($_POST['ids']) ? $_POST['ids'] : [];
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified in getSelectInputData().
+		if (!isset($_POST['ids'])) {
+			return [];
+		}
+
+		// Every consumer feeds this into post__in / include, so force a flat list of
+		// positive integers instead of trusting the raw request shape.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified in getSelectInputData().
+		return wp_parse_id_list(wp_unslash($_POST['ids']));
 	}
 
 
@@ -267,6 +290,8 @@ class Dynamic_Select_Input_Module
 			$post_type = 'any';
 		} elseif ($this->getPostType()) {
 			$post_type = $this->getPostType();
+		} else {
+			$post_type = 'any';
 		}
 		$post_taxonomies = get_object_taxonomies($post_type);
 		$taxonomies = array_intersect($post_taxonomies, $taxonomies);
@@ -305,7 +330,7 @@ class Dynamic_Select_Input_Module
 
 			$data[] = [
 				'id' => $term->term_taxonomy_id,
-				'text' => $label,
+				'text' => esc_html($label),
 			];
 		}
 
@@ -347,7 +372,7 @@ class Dynamic_Select_Input_Module
 		foreach ($users as $user) {
 			$data[] = [
 				'id' => $user->ID,
-				'text' => $user->display_name,
+				'text' => esc_html($user->display_name),
 			];
 		}
 
@@ -368,7 +393,7 @@ class Dynamic_Select_Input_Module
 		foreach ($all_roles as $key => $role) {
 			$roles[] = [
 				'id' => $key,
-				'text' => $role['name'],
+				'text' => esc_html($role['name']),
 			];
 		}
 
