@@ -5,11 +5,11 @@ Tags: hero slider, Elementor slider, Elementor addon, image slider, WooCommerce 
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 4.5.3
+Stable tag: 4.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Elementor requires at least: 4.0.0
-Elementor tested up to: 4.2.4
+Elementor tested up to: 4.3.3
 
 Create responsive Elementor sliders for hero sections, posts, products and more with powerful Elementor addons and ready-to-use Elementor templates.
 
@@ -233,6 +233,8 @@ This plugin connects to the following external services. In each case only the d
 
 3. **Vimeo** (`https://vimeo.com`) — used only by the Isolate widget's lightbox when the site owner has entered a Vimeo video URL for a slide. The visitor's browser loads the Vimeo player for that public video URL when the lightbox is opened; the plugin's PHP makes no request to Vimeo. The visitor's IP address and browser data therefore reach Vimeo at that point, as with any embedded video. Provided by Vimeo — [Terms of Service](https://vimeo.com/terms), [Privacy Policy](https://vimeo.com/privacy).
 
+4. **BdThemes newsletter** (`https://marketing.sigmative.com`) — used only if an administrator opts in to the BdThemes newsletter on the setup wizard's welcome screen. The opt-in checkbox is unticked by default. If it is ticked when the administrator clicks "Get Started", the email address entered there, together with the first and last name from that administrator's WordPress profile, is sent to subscribe them to the newsletter. Nothing is sent when the box is left unticked. Provided by BdThemes — [Terms of Use](https://bdthemes.com/terms-of-use/), [Privacy Policy](https://bdthemes.com/privacy-policy/).
+
 No data is sent to any external service unless one of the situations above occurs. The plugin does not phone home, does not collect analytics or telemetry, and does not check for updates outside of WordPress.org.
 
 Other bdthemes.com, primeslider.pro, store.bdthemes.com, account.bdthemes.com and feedback.bdthemes.com addresses that appear in the plugin's admin screens are ordinary links to documentation, support and product pages. Nothing is sent to them unless an administrator clicks the link and opens the page themselves.
@@ -265,6 +267,61 @@ https://youtu.be/WhhdCWtPHvA?si=28X_56Pg2sD_vRKe
 
 
 == Changelog ==
+
+= 4.7.1 [11th October 2026] =
+
+* Security: Hardened the stored XSS fix from 4.7.0 against two reported bypasses (reported by nh4tvd)
+
+= 4.7.0 [6th October 2026] =
+
+* Security: Fixed a stored XSS via data-bdt-svg attributes in post content (reported by Intrudify)
+* Added: Asset Optimization option that combines the CSS and JS of the widgets a page uses into one file each
+* Improved: UIkit and helper CSS/JS load only on pages that use a Prime Slider widget
+* Improved: Pages without Prime Slider widgets load no Prime Slider assets, lowering Total Blocking Time and speeding up Largest Contentful Paint
+
+= 4.6.2 [30th September 2026] =
+
+* Fixed: Blog widget's Coral skin broke the layout of the rest of the page when the query returned no posts
+* Fixed: Clicking the next-slide thumbnail in the blog widget's Coral skin did nothing
+* Fixed: Blog widget's Zinest skin showed ten items in its featured strip, including pages and products, instead of three posts. Selected featured posts now also keep the order they were picked in
+* Fixed: Blog widget showed no categories when the query source was Manual Selection, Current Query or Related
+* Fixed: Blog widget's Background Image Settings had no effect while the Kenburns Animation was turned on
+* Fixed: Blog widget's Default skin showed an empty image for posts without a featured image
+* Fixed: Dynamic tags in Social Link items were ignored by the blog widget's Default, Coral and Zinest skins
+* Fixed: The Scroll Down button did nothing when the Section ID was entered with a leading "#"
+* Fixed: Clearing the Autoplay Interval made the slider change slides non-stop
+* Fixed: A Text Limit that cut through a shortcode left part of the shortcode in the post text
+* Fixed: A widget's Query ID filter also ran for every other query on the page instead of only the widget's own query
+* Fixed: The Current Post option under Exclude By did not work when Ignore Sticky Posts was turned off
+* Fixed: Titles containing characters such as "&" or quotes were shown as HTML entities in the query search fields
+* Fixed: Saving a page with the blog widget logged PHP warnings when WPML was active
+* Fixed: The blog widget's Size Ratio control had no visible label, and the Separator Color label was misspelled
+* Fixed: The query search fields showed Contributors the titles of other authors' drafts, and let users without the List Users capability search people by e-mail address or list users who have never published anything
+* Changed: Blog widget no longer shows different posts on the second and later pages of a paginated archive
+* Changed: Blog widget shows a notice in the editor when its query finds no posts, and nothing on the live site
+* Improved: Blog widget's Coral skin runs its post query once per render instead of four times
+* Improved: The blend type, Section ID and Text Limit settings only accept valid values
+
+= 4.6.1 [23rd September 2026] =
+
+* Updated: System improved
+
+= 4.6.0 [10th September 2026] =
+
+* Fixed: The System Status charts on the dashboard never appeared, and the browser console reported "Cannot use import statement outside a module" and "Chart is not defined". The bundled Chart.js was the module build, which cannot run as an ordinary script
+* Fixed: Every template on the setup wizard's last step failed with "Invalid Import URL". The template files were missing from the plugin, and the release build excluded them as well
+* Fixed: The Activate button on the dashboard's Other Plugins tab led to "The link you followed has expired". The link's separators were HTML-encoded inside a script, so WordPress never received the plugin name or the security token
+* Added: The Other Plugins tab and the setup wizard's integration step now show each plugin's own logo instead of a generic placeholder icon
+* Changed: The Other Plugins tab lays its cards out in three columns and uses the same card design as the setup wizard's integration step
+* Changed: Removed the plugin description from the Other Plugins cards
+* Improved: The client IP helper no longer trusts forwarding headers supplied by the caller. Sites behind a reverse proxy or CDN can opt back in with the new prime_slider_trusted_proxies filter
+* Changed: Removed the unused uglify build dependency, clearing every critical advisory reported against the development toolchain
+
+= 4.5.4 [6th September 2026] =
+
+* Fixed: Pagepiling widget did not work on the front end ("pagepiling is not a function" in the console)
+* Fixed: Multiscroll widget did not work on the front end
+* Improved: Both widgets now log a warning instead of throwing an error when their library is missing
 
 = 4.5.3 [3rd September 2026] =
 
